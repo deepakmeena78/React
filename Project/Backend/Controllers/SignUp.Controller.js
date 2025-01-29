@@ -1,4 +1,4 @@
-import User from "../Models/SignUpM.js";
+import User from "../Models/SignUp.models.js";
 import bcypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
@@ -39,6 +39,26 @@ export const SignIn = async (req, res) => {
         }
     } catch (er) {
         return res.status(400).json({ msg: "Incorrect password" });
+    }
+}
+
+export const UpdateUser = async (req, res) => {
+    const { name, email, password, id } = req.body;
+    try {
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(404).json({ msg: "User Not Found" });
+        }
+        user.name = name || user.name;
+        user.email = email || user.email;
+        if (password) {
+            user.password = password;
+        }
+        await user.save();
+        return res.status(200).json({ msg: "Done Save" });
+    } catch (error) {
+        console.log("ER : ", error);
+        return res.status(500).json({ msg: "Error Hai Bhai Sahab" });
     }
 }
 

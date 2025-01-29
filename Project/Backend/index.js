@@ -1,13 +1,15 @@
 import express from "express";
 const app = express();
 import mongoose from "mongoose";
-import route from "./Routers/SignUpR.js";
+import route1 from "./Routers/SignUpRouter.js";
+import route2 from "./Routers/Issue.Route.js";
 
-mongoose.connect("mongodb://localhost:27017/P_User")
+mongoose.connect("mongodb://localhost:27017/My_Project")
     .then(() => {
         app.use(express.json());
         app.use(express.urlencoded({ extended: true }));
-        app.use("/", route);
+          app.use("/new", route1);
+        app.use("/", route2);
     })
     .catch((e) => {
         console.log(e);
@@ -16,5 +18,3 @@ mongoose.connect("mongodb://localhost:27017/P_User")
 app.listen(2333, () => {
     console.log("Server Started ");
 });
-
-
