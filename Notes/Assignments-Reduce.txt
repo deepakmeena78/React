@@ -112,3 +112,5 @@ output:- [
   { department: 'HR', average: 71666 }
 ]	
 
+
+
