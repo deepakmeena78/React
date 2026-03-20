@@ -1,4 +1,4 @@
-import ImageEditor from "./Components/ImageEditor"
+import ImageEditor from "./ImageEditor"
 
 function App() {
   return <ImageEditor />
