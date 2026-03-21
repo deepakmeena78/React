@@ -160,7 +160,7 @@ export function MobilePanel({ activeTab, setActiveTab, state }) {
       </div>
 
       {/* Bottom tab bar — horizontal scroll */}
-      <div className="pc-mobile-tabhint">Swipe for more tools →</div>
+      <div className="pc-mobile-tabhint">← Swipe tabs for more tools →</div>
       <nav className="pc-mobile-tabbar">
         {TABS.map(tab => (
           <button

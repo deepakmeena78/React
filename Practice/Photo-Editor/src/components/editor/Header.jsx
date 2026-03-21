@@ -1,5 +1,6 @@
 // src/components/editor/Header.jsx
-import { IBtn, Btn } from '../ui';
+import { useEffect, useRef, useState } from 'react';
+import { IBtn } from '../ui';
 import { IC } from '../../constants/icons';
 
 export default function Header({
@@ -11,6 +12,42 @@ export default function Header({
   handleSave, openFile,
   isModified,
 }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(Boolean(document.fullscreenElement));
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const onFsChange = () => setIsFullscreen(Boolean(document.fullscreenElement));
+    const onDocClick = (e) => {
+      if (!menuRef.current?.contains(e.target)) setMenuOpen(false);
+    };
+    const onEsc = (e) => {
+      if (e.key === 'Escape') setMenuOpen(false);
+    };
+
+    document.addEventListener('fullscreenchange', onFsChange);
+    document.addEventListener('mousedown', onDocClick);
+    document.addEventListener('touchstart', onDocClick, { passive: true });
+    document.addEventListener('keydown', onEsc);
+    return () => {
+      document.removeEventListener('fullscreenchange', onFsChange);
+      document.removeEventListener('mousedown', onDocClick);
+      document.removeEventListener('touchstart', onDocClick);
+      document.removeEventListener('keydown', onEsc);
+    };
+  }, []);
+
+  const toggleFullscreen = async () => {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await document.documentElement.requestFullscreen();
+    } catch (err) {
+      console.warn('Fullscreen request failed', err);
+    } finally {
+      setMenuOpen(false);
+    }
+  };
+
   return (
     <header className="pc-header">
 
@@ -64,22 +101,43 @@ export default function Header({
         </IBtn>
       </div>
 
-      {/* ── Right: Open + Export ── */}
-      <div className="pc-header__col">
+      {/* ── Right: Hamburger Menu ── */}
+      <div className="pc-header__col" ref={menuRef}>
         <button
-          className="pc-btn pc-btn-outline pc-btn-sm"
-          onClick={openFile}
+          type="button"
+          className={`pc-hamburger ${menuOpen ? 'on' : ''}`}
+          onClick={() => setMenuOpen(p => !p)}
+          aria-label="Open quick actions menu"
+          aria-expanded={menuOpen}
         >
-          {IC.Upload}<span>Open</span>
+          <span />
+          <span />
+          <span />
         </button>
-        <button
-          className={`pc-export-btn ${hasImage && !isCropping && !isSaving ? 'pc-export-btn--on' : 'pc-export-btn--off'}`}
-          onClick={handleSave}
-          disabled={!hasImage || isCropping || isSaving}
-        >
-          {isSaving ? <span className="pc-spin">⏳</span> : IC.Save}
-          <span>Export</span>
-        </button>
+
+        {menuOpen && (
+          <div className="pc-menu">
+            <button className="pc-menu__item" onClick={toggleFullscreen}>
+              <span className="pc-menu__ico">{IC.Fit}</span>
+              <span>{isFullscreen ? 'Exit Full Screen' : 'Full Screen'}</span>
+            </button>
+            <button
+              className="pc-menu__item"
+              onClick={() => { openFile(); setMenuOpen(false); }}
+            >
+              <span className="pc-menu__ico">{IC.Upload}</span>
+              <span>Open</span>
+            </button>
+            <button
+              className="pc-menu__item"
+              onClick={() => { handleSave(); setMenuOpen(false); }}
+              disabled={!hasImage || isCropping || isSaving}
+            >
+              <span className="pc-menu__ico">{isSaving ? '⏳' : IC.Save}</span>
+              <span>Export</span>
+            </button>
+          </div>
+        )}
       </div>
     </header>
   );
