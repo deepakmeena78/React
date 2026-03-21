@@ -38,6 +38,7 @@ export default function ImageEditor() {
           <div className="pc-loading__bar" />
         </div>
         <p className="pc-loading__tagline">Professional Photo Editor</p>
+        <p className="pc-loading__credit">Made By Deepak (Ankit) Meena</p>
       </div>
     );
   }

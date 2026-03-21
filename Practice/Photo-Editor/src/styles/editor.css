@@ -128,6 +128,14 @@ input[type=range] { -webkit-appearance: none; appearance: none; }
   font-size: 11px; color: var(--t4);
   letter-spacing: 4px; text-transform: uppercase;
 }
+.pc-loading__credit {
+  font-size: 13px; font-weight: 600;
+  color: var(--a-lite);
+  letter-spacing: 0.04em;
+  text-align: center;
+  max-width: min(92vw, 320px);
+  line-height: 1.45;
+}
 .pc-loading__bar-track {
   width: 180px; height: 2px;
   background: rgba(255,255,255,0.05);
@@ -153,13 +161,48 @@ input[type=range] { -webkit-appearance: none; appearance: none; }
   height: var(--header-h); flex-shrink: 0;
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 14px;
+  padding-left: max(14px, env(safe-area-inset-left));
+  padding-right: max(14px, env(safe-area-inset-right));
   background: rgba(12,14,22,0.96);
   border-bottom: 1px solid var(--bd);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   z-index: 200;
+  position: relative;
+  gap: 6px;
+  min-width: 0;
 }
-.pc-header__col { display: flex; align-items: center; gap: 5px; }
+.pc-header__col { display: flex; align-items: center; gap: 5px; min-width: 0; }
+
+/* Brand stays visible; tools scroll in the middle */
+.pc-header__col--brand {
+  flex: 0 0 auto;
+  max-width: 42%;
+  min-width: 0;
+}
+.pc-header__col--actions {
+  flex: 0 0 auto;
+  position: relative;
+  z-index: 2;
+}
+
+/* Horizontally scrollable toolbar — prevents clipped icons on mobile */
+.pc-header__tools {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 4px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 0 2px;
+}
+.pc-header__tools::-webkit-scrollbar { display: none; }
+.pc-header__tools .pc-ib,
+.pc-header__tools .pc-vdivider { flex-shrink: 0; }
 
 .pc-brand { display: flex; align-items: center; gap: 8px; }
 .pc-brand__icon {
@@ -209,9 +252,10 @@ input[type=range] { -webkit-appearance: none; appearance: none; }
 
 .pc-menu {
   position: absolute;
-  top: calc(var(--header-h) - 2px);
-  right: 12px;
+  top: calc(100% + 4px);
+  right: 0;
   min-width: 188px;
+  max-width: min(220px, calc(100vw - 24px));
   background: rgba(14,16,24,0.98);
   border: 1px solid var(--bd2);
   border-radius: 12px;
@@ -463,6 +507,13 @@ input[type=range] { -webkit-appearance: none; appearance: none; }
 .pc-ib-32 { width: 32px; height: 32px; }
 .pc-ib-36 { width: 36px; height: 36px; }
 .pc-ib-40 { width: 40px; height: 40px; }
+
+/* Hold-to-compare: avoid scroll-steal inside horizontal toolbar + reliable touch */
+.pc-ib--compare-hold {
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
 
 /* Action button */
 .pc-btn {
@@ -775,15 +826,36 @@ input[type=range] { -webkit-appearance: none; appearance: none; }
   .pc-canvas__img   { max-height: 100%; max-width: 100vw; }
   .pc-header__fname { display: none; }
   .pc-header {
-    padding: 0 8px;
-    gap: 8px;
+    padding: 0 max(8px, env(safe-area-inset-right)) 0 max(8px, env(safe-area-inset-left));
+    gap: 6px;
     overflow: visible;
     justify-content: space-between;
   }
-  .pc-header__col { flex-shrink: 1; }
-  .pc-brand__name { font-size: 15px; }
+  .pc-header__col--brand {
+    max-width: 34%;
+  }
+  .pc-brand__name {
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 22vw;
+    min-width: 0;
+  }
   .pc-mobile-tabhint { display: block; }
-  .pc-menu { right: 8px; min-width: 176px; }
+  .pc-header__tools {
+    mask-image: linear-gradient(90deg, transparent 0, #000 10px, #000 calc(100% - 10px), transparent 100%);
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 10px, #000 calc(100% - 10px), transparent 100%);
+  }
+  /* Menu fixed so it never clips inside overflow parents / safe areas */
+  .pc-menu {
+    position: fixed;
+    top: calc(var(--header-h) + env(safe-area-inset-top, 0px) + 4px);
+    right: max(8px, env(safe-area-inset-right));
+    left: auto;
+    min-width: min(200px, calc(100vw - 16px));
+    max-width: calc(100vw - 16px);
+  }
   .pc-status        { bottom: 8px; right: 8px; }
   .pc-drop          { padding: 32px 24px; max-width: 88vw; }
 }

@@ -79,9 +79,27 @@ export function FilterCard({ preset, active, imgSrc, onClick, size = 68 }) {
 // ═══════════════════════════════════════════════════════════
 // ICON BUTTON
 // ═══════════════════════════════════════════════════════════
-export function IBtn({ onClick, children, title, active, disabled, size = 36, onMouseDown, onMouseUp, onMouseLeave, onTouchStart, onTouchEnd }) {
+export function IBtn({
+  onClick,
+  children,
+  title,
+  active,
+  disabled,
+  size = 36,
+  className = '',
+  onMouseDown,
+  onMouseUp,
+  onMouseLeave,
+  onTouchStart,
+  onTouchEnd,
+  onPointerDown,
+  onPointerUp,
+  onPointerCancel,
+  onLostPointerCapture,
+}) {
   return (
     <button
+      type="button"
       onClick={onClick}
       title={title}
       disabled={disabled}
@@ -90,7 +108,11 @@ export function IBtn({ onClick, children, title, active, disabled, size = 36, on
       onMouseLeave={onMouseLeave}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
-      className={`pc-ib pc-ib-${size} ${active ? 'active' : ''}`}
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerCancel}
+      onLostPointerCapture={onLostPointerCapture}
+      className={`pc-ib pc-ib-${size} ${active ? 'active' : ''} ${className}`.trim()}
     >
       {children}
     </button>
