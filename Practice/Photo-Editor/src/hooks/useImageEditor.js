@@ -194,7 +194,10 @@ export default function useImageEditor() {
   }, [adj, pushHistory]);
 
   const setZoom = useCallback((val) => {
-    setTx(p => ({ ...p, zoom: val }));
+    setTx(p => ({
+      ...p,
+      zoom: typeof val === 'function' ? val(p.zoom) : val,
+    }));
   }, []);
 
   // ── Crop ──────────────────────────────────────────────────
@@ -260,6 +263,14 @@ export default function useImageEditor() {
   const setStraighten = useCallback((deg) => {
     setTx(p => ({ ...p, straighten: deg }));
   }, []);
+
+  const commitStraighten = useCallback((deg) => {
+    setTx(p => {
+      const next = { ...p, straighten: deg };
+      pushHistory(adj, next);
+      return next;
+    });
+  }, [adj, pushHistory]);
 
   // ── Export / Save ─────────────────────────────────────────
   const handleSave = useCallback(async () => {
@@ -340,7 +351,8 @@ export default function useImageEditor() {
     || tx.rotation !== 0
     || tx.flipX !== 1
     || tx.flipY !== 1
-  ), [adj, tx.rotation, tx.flipX, tx.flipY]);
+    || (tx.straighten || 0) !== 0
+  ), [adj, tx.rotation, tx.flipX, tx.flipY, tx.straighten]);
 
   return {
     // lifecycle
@@ -350,7 +362,7 @@ export default function useImageEditor() {
     // adjustment
     adj, changeAdj, commitAdj, applyPreset, resetAdj,
     // transform
-    tx, setZoom, rotate, flip, setStraighten,
+    tx, setZoom, rotate, flip, setStraighten, commitStraighten,
     // crop
     isCropping, cropW, setCropW, cropH, setCropH, activeRatio,
     startCrop, doneCrop, cancelCrop, setAspectRatio,

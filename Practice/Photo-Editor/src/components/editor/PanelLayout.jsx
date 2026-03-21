@@ -18,7 +18,7 @@ function TabContent({ tab, state, isMobile }) {
     activeFilter, applyPreset, imageSrc,
     activeRatio, setAspectRatio, startCrop, doneCrop, cancelCrop,
     cropW, setCropW, cropH, setCropH,
-    tx, setZoom, rotate, flip,
+    tx, setZoom, rotate, flip, setStraighten, commitStraighten,
     texts, setTexts, stickers, setStickers,
     frame, setFrame,
     exportFmt, setExportFmt, exportQuality, setExportQuality,
@@ -63,7 +63,7 @@ function TabContent({ tab, state, isMobile }) {
       return (
         <TransformPanel
           tx={tx} setZoom={setZoom} rotate={rotate} flip={flip}
-          hasImage={hasImage} onChange={changeAdj} onCommit={commitAdj}
+          hasImage={hasImage} setStraighten={setStraighten} commitStraighten={commitStraighten}
         />
       );
 
@@ -160,6 +160,7 @@ export function MobilePanel({ activeTab, setActiveTab, state }) {
       </div>
 
       {/* Bottom tab bar — horizontal scroll */}
+      <div className="pc-mobile-tabhint">Swipe for more tools →</div>
       <nav className="pc-mobile-tabbar">
         {TABS.map(tab => (
           <button

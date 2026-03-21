@@ -1,25 +1,123 @@
 // src/components/editor/Canvas.jsx
 import { buildGrainStyle } from '../../constants';
 import { IC } from '../../constants/icons';
-import { useMemo } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 export default function Canvas({
   imageSrc, origSrc, imgRef,
   filterStr, vigGrad, transformStr,
   isCropping, showBefore, showGrid,
   hasImage, adj,
-  texts, stickers,
+  texts, setTexts, stickers, setStickers,
   zoom, imgNatural, isModified,
   handleDrop, openFile,
   isSaving,
 }) {
   const grainStyle = useMemo(() => buildGrainStyle(adj.grain), [adj.grain]);
+  const [activeLayer, setActiveLayer] = useState(null); // { type: 'text' | 'sticker', id }
+  const dragRef = useRef(null);
+  const latestPointerRef = useRef(null);
+  const rafRef = useRef(null);
+
+  const clampPct = (v) => Math.max(0, Math.min(100, v));
+
+  const updateLayer = useCallback((type, id, updater) => {
+    if (type === 'text') {
+      setTexts(prev => prev.map(t => (t.id === id ? { ...t, ...updater(t) } : t)));
+      return;
+    }
+    setStickers(prev => prev.map(s => (s.id === id ? { ...s, ...updater(s) } : s)));
+  }, [setTexts, setStickers]);
+
+  const handleLayerPointerDown = useCallback((e, type, item) => {
+    if (e.target.closest('.pc-canvas__resize')) return;
+    e.stopPropagation();
+    setActiveLayer({ type, id: item.id });
+    const rect = imgRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    dragRef.current = {
+      mode: 'move',
+      type,
+      id: item.id,
+      startX: e.clientX,
+      startY: e.clientY,
+      startItemX: item.x,
+      startItemY: item.y,
+      width: rect.width || 1,
+      height: rect.height || 1,
+    };
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+  }, [imgRef]);
+
+  const handleResizePointerDown = useCallback((e, type, item) => {
+    e.stopPropagation();
+    setActiveLayer({ type, id: item.id });
+    dragRef.current = {
+      mode: 'resize',
+      type,
+      id: item.id,
+      startX: e.clientX,
+      startY: e.clientY,
+      startSize: item.size || 32,
+    };
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+  }, []);
+
+  const commitDragFrame = useCallback(() => {
+    rafRef.current = null;
+    const op = dragRef.current;
+    const p = latestPointerRef.current;
+    if (!op || !p) return;
+
+    if (op.mode === 'move') {
+      const dxPct = ((p.clientX - op.startX) / op.width) * 100;
+      const dyPct = ((p.clientY - op.startY) / op.height) * 100;
+      updateLayer(op.type, op.id, () => ({
+        x: clampPct(op.startItemX + dxPct),
+        y: clampPct(op.startItemY + dyPct),
+      }));
+      return;
+    }
+
+    // Resize: use dominant axis for predictable feel.
+    const dX = p.clientX - op.startX;
+    const dY = p.clientY - op.startY;
+    const dominant = Math.abs(dX) > Math.abs(dY) ? dX : dY;
+    const sensitivity = 0.45; // higher = faster/greater resize per finger movement
+    const minSize = op.type === 'text' ? 10 : 14;
+    const maxSize = 360;
+    const nextSize = op.startSize + dominant * sensitivity;
+    updateLayer(op.type, op.id, () => ({
+      size: Math.max(minSize, Math.min(maxSize, nextSize)),
+    }));
+  }, [updateLayer]);
+
+  const handlePointerMove = useCallback((e) => {
+    const op = dragRef.current;
+    if (!op) return;
+    latestPointerRef.current = { clientX: e.clientX, clientY: e.clientY };
+    if (rafRef.current) return;
+    rafRef.current = requestAnimationFrame(commitDragFrame);
+  }, [commitDragFrame]);
+
+  const handlePointerUp = useCallback(() => {
+    dragRef.current = null;
+    latestPointerRef.current = null;
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+  }, []);
 
   return (
     <main
       className={`pc-canvas ${showGrid ? 'has-grid' : ''}`}
       onDragOver={e => e.preventDefault()}
       onDrop={handleDrop}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+      onClick={() => setActiveLayer(null)}
     >
       {/* ── Badges ── */}
       {showBefore && hasImage && (
@@ -77,7 +175,7 @@ export default function Canvas({
           {texts.map(t => (
             <div
               key={t.id}
-              className="pc-canvas__overlay"
+              className={`pc-canvas__overlay ${activeLayer?.type === 'text' && activeLayer?.id === t.id ? 'is-active' : ''}`}
               style={{
                 left:       `${t.x}%`,
                 top:        `${t.y}%`,
@@ -87,8 +185,14 @@ export default function Canvas({
                 fontWeight:  t.bold ? '700' : '400',
                 textShadow:  t.shadow ? '0 2px 10px rgba(0,0,0,0.9)' : 'none',
               }}
+              onPointerDown={(e) => handleLayerPointerDown(e, 'text', t)}
             >
               {t.text}
+              <button
+                className="pc-canvas__resize"
+                onPointerDown={(e) => handleResizePointerDown(e, 'text', t)}
+                aria-label="Resize text"
+              />
             </div>
           ))}
 
@@ -96,15 +200,21 @@ export default function Canvas({
           {stickers.map(s => (
             <div
               key={s.id}
-              className="pc-canvas__overlay"
+              className={`pc-canvas__overlay ${activeLayer?.type === 'sticker' && activeLayer?.id === s.id ? 'is-active' : ''}`}
               style={{
                 left:     `${s.x}%`,
                 top:      `${s.y}%`,
                 fontSize: `${s.size}px`,
                 lineHeight: 1,
               }}
+              onPointerDown={(e) => handleLayerPointerDown(e, 'sticker', s)}
             >
               {s.emoji}
+              <button
+                className="pc-canvas__resize"
+                onPointerDown={(e) => handleResizePointerDown(e, 'sticker', s)}
+                aria-label="Resize sticker"
+              />
             </div>
           ))}
 

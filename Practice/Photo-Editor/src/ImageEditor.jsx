@@ -15,7 +15,7 @@ export default function ImageEditor() {
     imageSrc, origSrc, imgRef, fileRef, imgNatural, fileName, isModified,
     // visual
     filterStr, vigGrad, transformStr, hasImage,
-    adj, tx, texts, stickers,
+    adj, tx, texts, setTexts, stickers, setStickers,
     // crop
     isCropping,
     // ui state
@@ -94,7 +94,9 @@ export default function ImageEditor() {
           hasImage={hasImage}
           adj={adj}
           texts={texts}
+          setTexts={setTexts}
           stickers={stickers}
+          setStickers={setStickers}
           zoom={tx.zoom}
           imgNatural={imgNatural}
           isModified={isModified}
