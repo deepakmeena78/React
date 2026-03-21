@@ -15,7 +15,7 @@ export default function ImageEditor() {
     imageSrc, origSrc, imgRef, fileRef, imgNatural, fileName, isModified,
     // visual
     filterStr, vigGrad, transformStr, hasImage,
-    adj, tx, texts, stickers, frame,
+    adj, tx, texts, stickers,
     // crop
     isCropping,
     // ui state
@@ -24,7 +24,7 @@ export default function ImageEditor() {
     // history
     canUndo, canRedo, undo, redo,
     // handlers
-    handleFile, handleDrop, handleSave, resetAll, openFile,
+    handleFile, handleDrop, handleSave,
     // zoom shortcut
     setZoom,
   } = editor;
@@ -60,7 +60,6 @@ export default function ImageEditor() {
         canRedo={canRedo}
         undo={undo}
         redo={redo}
-        zoom={tx.zoom}
         setZoom={setZoom}
         showBefore={showBefore}
         setShowBefore={setShowBefore}

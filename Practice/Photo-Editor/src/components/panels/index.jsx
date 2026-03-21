@@ -145,7 +145,7 @@ export function CropPanel({
 // ═══════════════════════════════════════════════════════════
 // TRANSFORM PANEL
 // ═══════════════════════════════════════════════════════════
-export function TransformPanel({ tx, setZoom, rotate, flip, hasImage, adj, onChange, onCommit }) {
+export function TransformPanel({ tx, setZoom, rotate, flip, hasImage, onChange, onCommit }) {
   const zoomAdj = { key: 'zoom', label: 'Zoom', icon: '🔍', min: 0.2, max: 4, default: 1, unit: '×' };
 
   return (
@@ -178,6 +178,7 @@ export function TransformPanel({ tx, setZoom, rotate, flip, hasImage, adj, onCha
         adj={{ key: 'straighten', label: 'Straighten', icon: '📐', min: -45, max: 45, default: 0, unit: '°' }}
         value={tx.straighten || 0}
         onChange={v => onChange?.('straighten', v)}
+        onCommit={onCommit}
         disabled={!hasImage}
       />
 

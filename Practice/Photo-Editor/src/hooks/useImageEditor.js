@@ -1,5 +1,5 @@
 // src/hooks/useImageEditor.js
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import useHistory from './useHistory';
 import {
   DEFAULT_ADJ, TABS, buildFilter, buildVignette,
@@ -9,6 +9,7 @@ import {
 // ── Snapshot shape ──────────────────────────────────────────
 const makeSnap = (adj, tx) => ({ adj: { ...adj }, tx: { ...tx } });
 const DEFAULT_TX = { rotation: 0, flipX: 1, flipY: 1, zoom: 1 };
+const DEFAULT_ADJ_STR = JSON.stringify(DEFAULT_ADJ);
 
 // ═══════════════════════════════════════════════════════════
 export default function useImageEditor() {
@@ -95,12 +96,6 @@ export default function useImageEditor() {
     hist.push(makeSnap(newAdj, newTx));
   }, [hist]);
 
-  // ── Restore from history snapshot ────────────────────────
-  const restoreSnap = useCallback((snap) => {
-    setAdj({ ...snap.adj });
-    setTx({ ...snap.tx });
-  }, []);
-
   // ── Undo / Redo ───────────────────────────────────────────
   const undo = useCallback(() => {
     if (!hist.canUndo) return;
@@ -114,10 +109,12 @@ export default function useImageEditor() {
   }, [hist]);
 
   // ── Sync adj/tx from history current ─────────────────────
+  const currentSnap = hist.current;
   useEffect(() => {
-    setAdj({ ...hist.current?.adj });
-    setTx({ ...hist.current?.tx });
-  }, [hist.current]);
+    if (!currentSnap) return;
+    setAdj({ ...currentSnap.adj });
+    setTx({ ...currentSnap.tx });
+  }, [currentSnap]);
 
   // ── File load ─────────────────────────────────────────────
   const handleFile = useCallback((e) => {
@@ -331,12 +328,19 @@ export default function useImageEditor() {
   }, [imageSrc, imgRef, adj, texts, stickers, exportFmt, exportQuality, exportScale, imgNatural, fileName, isSaving, toast]);
 
   // ── Derived ───────────────────────────────────────────────
-  const filterStr    = buildFilter(adj);
-  const vigGrad      = buildVignette(adj.vignette);
-  const transformStr = `rotate(${tx.rotation + (tx.straighten || 0)}deg) scaleX(${tx.flipX}) scaleY(${tx.flipY}) scale(${tx.zoom})`;
-  const hasImage     = !!imageSrc;
-  const isModified   = JSON.stringify(adj) !== JSON.stringify(DEFAULT_ADJ)
-    || tx.rotation !== 0 || tx.flipX !== 1 || tx.flipY !== 1;
+  const filterStr = useMemo(() => buildFilter(adj), [adj]);
+  const vigGrad = useMemo(() => buildVignette(adj.vignette), [adj.vignette]);
+  const transformStr = useMemo(
+    () => `rotate(${tx.rotation + (tx.straighten || 0)}deg) scaleX(${tx.flipX}) scaleY(${tx.flipY}) scale(${tx.zoom})`,
+    [tx.rotation, tx.straighten, tx.flipX, tx.flipY, tx.zoom]
+  );
+  const hasImage = !!imageSrc;
+  const isModified = useMemo(() => (
+    JSON.stringify(adj) !== DEFAULT_ADJ_STR
+    || tx.rotation !== 0
+    || tx.flipX !== 1
+    || tx.flipY !== 1
+  ), [adj, tx.rotation, tx.flipX, tx.flipY]);
 
   return {
     // lifecycle

@@ -23,7 +23,7 @@ function TabContent({ tab, state, isMobile }) {
     frame, setFrame,
     exportFmt, setExportFmt, exportQuality, setExportQuality,
     exportScale, setExportScale,
-    imgNatural, fileName, isModified, isSaving, handleSave,
+    imgNatural, fileName, isSaving, handleSave,
   } = state;
 
   const disabled = !hasImage || isCropping;
@@ -63,7 +63,7 @@ function TabContent({ tab, state, isMobile }) {
       return (
         <TransformPanel
           tx={tx} setZoom={setZoom} rotate={rotate} flip={flip}
-          hasImage={hasImage} adj={adj} onChange={changeAdj}
+          hasImage={hasImage} onChange={changeAdj} onCommit={commitAdj}
         />
       );
 

@@ -1,7 +1,7 @@
 // src/components/ui/index.jsx
 // All reusable UI primitives
 
-import { useState } from 'react';
+import { useMemo } from 'react';
 
 // ═══════════════════════════════════════════════════════════
 // ADJUSTMENT SLIDER
@@ -59,7 +59,10 @@ export function AdjSlider({ adj, value, onChange, onCommit, disabled }) {
 import { buildFilter, DEFAULT_ADJ } from '../../constants';
 
 export function FilterCard({ preset, active, imgSrc, onClick, size = 68 }) {
-  const fs = buildFilter({ ...DEFAULT_ADJ, ...preset.values });
+  const fs = useMemo(
+    () => buildFilter({ ...DEFAULT_ADJ, ...preset.values }),
+    [preset.values]
+  );
   return (
     <button className="pc-fc" onClick={onClick}>
       <div className={`pc-fc__thumb ${active ? 'on' : ''}`} style={{ width: size, height: size }}>

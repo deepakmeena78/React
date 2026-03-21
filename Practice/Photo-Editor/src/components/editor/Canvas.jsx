@@ -1,6 +1,7 @@
 // src/components/editor/Canvas.jsx
 import { buildGrainStyle } from '../../constants';
 import { IC } from '../../constants/icons';
+import { useMemo } from 'react';
 
 export default function Canvas({
   imageSrc, origSrc, imgRef,
@@ -12,6 +13,8 @@ export default function Canvas({
   handleDrop, openFile,
   isSaving,
 }) {
+  const grainStyle = useMemo(() => buildGrainStyle(adj.grain), [adj.grain]);
+
   return (
     <main
       className={`pc-canvas ${showGrid ? 'has-grid' : ''}`}
@@ -67,7 +70,7 @@ export default function Canvas({
 
           {/* Grain overlay (visual preview) */}
           {(adj.grain > 0) && !isCropping && !showBefore && (
-            <div style={buildGrainStyle(adj.grain)} />
+            <div style={grainStyle} />
           )}
 
           {/* Text overlays */}

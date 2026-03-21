@@ -5,7 +5,7 @@ import { IC } from '../../constants/icons';
 export default function Header({
   fileName, hasImage, isCropping, isSaving,
   canUndo, canRedo, undo, redo,
-  zoom, setZoom,
+  setZoom,
   showBefore, setShowBefore,
   showGrid, setShowGrid,
   handleSave, openFile,
